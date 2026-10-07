@@ -4,7 +4,7 @@
 // Test a big group: add &players=30
 
 // computeNext comes from app.js as a parameter, so app.js never loads twice.
-import { SCALES, CATS } from './content.js?v=en1';
+import { SCALES, CATS } from './content.js?v=en3';
 
 const NAMES = ['Anna', 'Leo', 'Maya', 'Sam', 'Hanna', 'Omar', 'Lena', 'Diego', 'Yuki', 'Priya',
   'Tom', 'Sara', 'Ivan', 'Zoe', 'Ali', 'Nina', 'Ben', 'Mia', 'Raj', 'Eva',
@@ -21,7 +21,8 @@ function seeded(i, s) {
 function makePlayers(n) {
   const players = {};
   for (let i = 0; i < n; i++) {
-    players[`p${i + 1}`] = { name: NAMES[i % NAMES.length], cat: CATS[(i * 5) % CATS.length].id, joinedAt: i + 1 };
+    const round = Math.floor(i / NAMES.length);
+    players[`p${i + 1}`] = { name: NAMES[i % NAMES.length] + (round ? ` ${round + 1}` : ''), cat: CATS[(i * 5) % CATS.length].id, joinedAt: i + 1 };
   }
   return players;
 }
@@ -32,7 +33,7 @@ function makeScaleValues(ids) {
 
 export function createDemoStore(params, computeNext) {
   const code = 'TEST';
-  const count = Math.max(2, Math.min(40, Number(params.get('players') || 5)));
+  const count = Math.max(2, Math.min(80, Number(params.get('players') || 5)));
   const phase = PHASES.includes(params.get('phase')) ? params.get('phase') : 'lobby';
   const step = Number(params.get('step') || 0);
   const players = makePlayers(count);

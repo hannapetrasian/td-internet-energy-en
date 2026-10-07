@@ -522,9 +522,20 @@ a { color: inherit; }
 .h-lobby .players .avatar { --size: 168px; }
 .h-lobby .players.n-mid { gap: 20px 28px; }
 .h-lobby .players.n-mid .avatar { --size: 120px; }
-.h-lobby .players.n-crowd { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: 12px 8px; }
-.h-lobby .players.n-crowd .avatar { --size: 72px; }
-.h-lobby .players.n-crowd .avatar .name { font-size: 22px; max-width: 108px; }
+.h-lobby .players.n-crowd { display: grid; grid-template-columns: repeat(var(--fit-cols, 14), minmax(0, 1fr)); gap: 14px 10px; align-content: start; align-self: stretch; min-height: 0; overflow: hidden; }
+.h-lobby .players.n-crowd .avatar { --size: var(--fit-size, 72px); min-width: 0; }
+.h-lobby .players.n-crowd .avatar .name { font-size: 22px; max-width: 100%; }
+
+/* Big group: smaller header, more room for cats */
+.h-lobby.compact { gap: 24px 48px; }
+.h-lobby.compact .title-wrap .display { font-size: 128px; }
+.h-lobby.compact .code-wrap { margin-top: 0; gap: 4px; }
+.h-lobby.compact .code { font-size: 88px; }
+.h-lobby.compact .url { font-size: 28px; }
+.h-lobby.compact .qr-card canvas { width: 240px; height: 240px; }
+
+/* "+N" chip when a group is too big to show every cat */
+.more-chip { align-self: center; justify-self: center; display: grid; place-items: center; min-width: 96px; height: 72px; padding: 0 18px; border: 2px solid var(--ink); border-radius: 36px; background: var(--paper); box-shadow: 0 4px 0 var(--ink); font-family: var(--font-display); font-weight: 700; font-size: 36px; }
 
 /* Scales */
 .h-scales { display: grid; grid-template-rows: auto 1fr; gap: 24px; height: 100%; }
@@ -556,6 +567,7 @@ a { color: inherit; }
 .h-scales .track.n-few   { --pin-size: 184px; --pin-w: 230px; --lane-h: 230px; --pin-name: 30px; }
 .h-scales .track.n-mid   { --pin-size: 116px; --pin-w: 150px; --lane-h: 160px; --pin-name: 24px; }
 .h-scales .track.n-crowd { --pin-size: 80px;  --pin-w: 104px; --lane-h: 114px; --pin-name: 22px; }
+.h-scales .track.n-huge  { --pin-size: 60px;  --pin-w: 80px;  --lane-h: 84px;  --pin-name: 18px; }
 
 /* Final */
 .h-end { display: grid; grid-template-rows: auto 1fr; gap: 24px; height: 100%; align-items: start; }
@@ -567,8 +579,8 @@ a { color: inherit; }
 .h-end .team.n-mid { flex-wrap: wrap; gap: 28px 24px; }
 .h-end .team.n-mid .member { flex: 0 1 320px; --size: 130px; }
 .h-end .team.n-mid .member .nm { font-size: 32px; }
-.h-end .team.n-crowd { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 22px 12px; align-self: center; }
-.h-end .team.n-crowd .member { --size: 120px; }
+.h-end .team.n-crowd { display: grid; grid-template-columns: repeat(var(--fit-cols, 11), minmax(0, 1fr)); gap: 18px 10px; align-self: stretch; align-content: center; min-height: 0; overflow: hidden; }
+.h-end .team.n-crowd .member { --size: var(--fit-size, 120px); }
 .h-end .team.n-crowd .member .nm { font-family: var(--font-ui); font-weight: 800; text-transform: none; font-size: 24px; margin-top: 6px; }
 
 /* ====================================================================

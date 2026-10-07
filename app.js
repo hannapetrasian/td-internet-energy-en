@@ -2,7 +2,7 @@
 // Static site, no build step. ESM. Firebase loads on demand. Demo mode works offline.
 // Flow: lobby, then five scales, then the final screen.
 
-import { SCALES, CATS, CAT_BY_ID, PHASE_ACCENT, TEXT } from './content.js?v=en1';
+import { SCALES, CATS, CAT_BY_ID, PHASE_ACCENT, TEXT } from './content.js?v=en3';
 
 /* ============================================================
    Utilities
@@ -36,7 +36,43 @@ function sortedPlayers(players) {
 }
 
 // Group size decides how big the cats are on the main screen.
-const crowdClass = (n) => (n <= 6 ? 'n-few' : n <= 12 ? 'n-mid' : 'n-crowd');
+const crowdClass = (n) => (n <= 6 ? 'n-few' : n <= 12 ? 'n-mid' : n <= 30 ? 'n-crowd' : 'n-huge');
+
+// Fit any number of cats into a box: pick the biggest cat size that fits all of them.
+// If even the smallest size does not fit, show as many as fit and a "+N" chip for the rest.
+function fitGrid(box, n, { max = 140, min = 44, nameH = 34, gapX = 10, gapY = 14 } = {}) {
+  const W = box.clientWidth, H = box.clientHeight;
+  if (!W || !H || !n) return { size: max, cols: Math.max(1, n), capacity: n };
+  for (let size = max; size >= min; size -= 2) {
+    const cellW = Math.max(size + 16, 104), cellH = size + nameH;
+    const cols = Math.max(1, Math.floor((W + gapX) / (cellW + gapX)));
+    const rows = Math.max(1, Math.floor((H + gapY) / (cellH + gapY)));
+    if (cols * rows >= n) {
+      const needRows = Math.ceil(n / cols);
+      return { size, cols: Math.ceil(n / needRows), capacity: n };
+    }
+  }
+  const cellW = Math.max(min + 16, 104), cellH = min + nameH;
+  const cols = Math.max(1, Math.floor((W + gapX) / (cellW + gapX)));
+  const rows = Math.max(1, Math.floor((H + gapY) / (cellH + gapY)));
+  return { size: min, cols, capacity: cols * rows };
+}
+
+// Apply fitGrid to a container of avatars. Extra avatars hide behind a "+N" chip.
+function applyFit(box, items, opts) {
+  const n = items.length;
+  const { size, cols, capacity } = fitGrid(box, n, opts);
+  box.style.setProperty('--fit-size', `${size}px`);
+  box.style.setProperty('--fit-cols', cols);
+  const shown = capacity >= n ? n : capacity - 1;
+  items.forEach((it, i) => it.classList.toggle('hidden', i >= shown));
+  let chip = box.querySelector('.more-chip');
+  if (shown < n) {
+    if (!chip) { chip = el(`<div class="more-chip"></div>`); box.appendChild(chip); }
+    chip.textContent = `+${n - shown}`;
+    box.appendChild(chip);
+  } else if (chip) chip.remove();
+}
 
 // Final title: order of joining, shifted by the room code. Titles repeat only after the list ends.
 function titleFor(players, pid, code) {
@@ -117,7 +153,7 @@ function confetti(n = 30) {
    ============================================================ */
 
 async function createFirebaseStore() {
-  const { firebaseConfig } = await import('./config.js?v=en1');
+  const { firebaseConfig } = await import('./config.js?v=en3');
   const [{ initializeApp }, db] = await Promise.all([
     import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
     import('https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js'),
@@ -169,6 +205,7 @@ const SCALE_SIZES = {
   'n-few':   { size: 184, gap: 156, laneH: 230, lanes: 2 },
   'n-mid':   { size: 116, gap: 150, laneH: 160, lanes: 3 },
   'n-crowd': { size: 80,  gap: 104, laneH: 112, lanes: 4 },
+  'n-huge':  { size: 60,  gap: 78,  laneH: 84,  lanes: 5 },
 };
 
 function layoutScale(items, trackW, mode) {
@@ -342,6 +379,8 @@ class Host {
   /* --- transitions --- */
 
   async next() {
+    // Demo: the button does the same as the right arrow, so fake answers appear too
+    if (this.demo) { this.store.demoNext?.(); return; }
     if (this.busy || !this.room) return;
     const updates = computeNext(this.room);
     if (!updates) return;
@@ -423,7 +462,9 @@ class Host {
         const update = (room) => {
           const players = sortedPlayers(room.players);
           const wrap = $('.players', node);
-          wrap.className = `players ${crowdClass(players.length)}`;
+          const mode = crowdClass(players.length);
+          wrap.className = `players ${mode === 'n-huge' ? 'n-crowd' : mode}`;
+          $('.h-lobby', node).classList.toggle('compact', players.length > 12);
           players.forEach((p, i) => {
             if (seen.has(p.id)) return;
             seen.add(p.id);
@@ -431,6 +472,8 @@ class Host {
           });
           for (const a of wrap.querySelectorAll('.avatar')) if (!room.players?.[a.dataset.pid]) { seen.delete(a.dataset.pid); a.remove(); }
           first = false;
+          if (players.length > 12) requestAnimationFrame(() => applyFit(wrap, [...wrap.querySelectorAll('.avatar')], { max: 120, min: 44, nameH: 46 }));
+          else { wrap.style.removeProperty('--fit-size'); wrap.querySelector('.more-chip')?.remove(); wrap.querySelectorAll('.avatar.hidden').forEach((a) => a.classList.remove('hidden')); }
           $('.status', node).innerHTML = tag(TEXT.lobby.players(players.length), 'surprise', 'lobby-count')
             + (players.length < 2 ? `<span class="hint">${esc(TEXT.lobby.needTwo)}</span>` : '');
         };
@@ -488,7 +531,7 @@ class Host {
       end(room) {
         const code = this.code;
         const players = sortedPlayers(room.players);
-        const mode = players.length <= 5 ? 'n-few' : players.length <= 10 ? 'n-mid' : 'n-crowd';
+        const mode = players.length <= 5 ? 'n-few' : players.length <= 10 ? 'n-mid' : 'n-crowd';   // n-crowd here means 11 and more
         const showTitles = mode !== 'n-crowd';
         const node = el(`<div class="screen">
           ${hostTop({ code, mid: tag('GAME OVER', 'surprise', 'over') })}
@@ -512,6 +555,10 @@ class Host {
           </div></div>
           ${hostBottom({ status: credit() })}
         </div>`);
+        if (mode === 'n-crowd') {
+          const team = $('.team', node);
+          requestAnimationFrame(() => applyFit(team, [...team.querySelectorAll('.member')], { max: 140, min: 44, nameH: 48, gapY: 18 }));
+        }
         setTimeout(() => confetti(), 300);
         return { node, update: () => {} };
       },
@@ -706,6 +753,10 @@ class Player {
           </div>`,
           bottom: '',
         });
+        if (mode === 'n-crowd') {
+          const team = $('.team', node);
+          requestAnimationFrame(() => applyFit(team, [...team.querySelectorAll('.member')], { max: 140, min: 44, nameH: 48, gapY: 18 }));
+        }
         setTimeout(() => confetti(), 300);
         return { node, update: () => {} };
       },
@@ -764,7 +815,7 @@ async function main() {
 
   let store;
   try {
-    store = demo ? await (await import('./demo.js?v=en1')).createDemoStore(params, computeNext) : await createFirebaseStore();
+    store = demo ? await (await import('./demo.js?v=en3')).createDemoStore(params, computeNext) : await createFirebaseStore();
   } catch (e) {
     console.error(e);
     show('index');
