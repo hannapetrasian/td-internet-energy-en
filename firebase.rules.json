@@ -1,0 +1,26 @@
+{
+  "rules": {
+    "rooms": {
+      "$code": {
+        ".read": true,
+        ".write": "$code.matches(/^[A-HJ-NP-Z]{4}$/)",
+        "players": {
+          "$pid": {
+            "name": { ".validate": "newData.isString() && newData.val().length <= 16" }
+          }
+        },
+        "whois": {
+          "$pid": {
+            "$k": { ".validate": "newData.isString() && newData.val().length <= 80" }
+          }
+        },
+        "manual": {
+          "$pid": {
+            "$k": { ".validate": "newData.isString() && newData.val().length <= 120" }
+          }
+        }
+      }
+    },
+    "$other": { ".read": false, ".write": false }
+  }
+}

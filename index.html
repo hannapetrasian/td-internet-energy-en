@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+  <title>Team Cats: a short team game</title>
+  <meta name="description" content="Team Cats: a short game to get to know your team.">
+  <meta name="theme-color" content="#F5F0E8">
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="assets/cats/photo_smirk.png" type="image/png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Caveat:wght@600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=en1">
+</head>
+<body>
+  <div class="net-banner hidden" id="net-banner" role="status"></div>
+
+  <!-- Host: a 1920x1080 stage that scales to the window -->
+  <section data-screen="host" class="host hidden">
+    <div class="host-viewport">
+      <div class="host-stage" id="host-stage"><div class="host-shaker" id="host-shaker"></div></div>
+    </div>
+  </section>
+
+  <!-- Player: phone -->
+  <section data-screen="player" class="phone hidden">
+    <div class="phone-wrap" id="player-root"></div>
+  </section>
+
+  <!-- Empty address -->
+  <section data-screen="index" class="phone hidden">
+    <div class="index-page" id="index-root"></div>
+  </section>
+
+  <script src="assets/vendor/qrcode.min.js"></script>
+  <script type="module" src="app.js?v=en1"></script>
+</body>
+</html>

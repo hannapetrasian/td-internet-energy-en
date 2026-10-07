@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+  <!-- Hand-drawn doodles. 3px ink stroke, round caps, no fill.
+       pathLength="1" on each path powers the "line draws itself" animation (.doodle.draw). -->
+  <symbol id="arrow" viewBox="0 0 160 100">
+    <path pathLength="1" d="M6 70 C 40 20, 90 10, 150 36" />
+    <path pathLength="1" d="M128 18 L150 36 L124 48" />
+  </symbol>
+  <symbol id="arrow-down" viewBox="0 0 100 160">
+    <path pathLength="1" d="M30 6 C 90 40, 80 100, 50 150" />
+    <path pathLength="1" d="M26 128 L50 150 L68 126" />
+  </symbol>
+  <symbol id="arrow-loop" viewBox="0 0 160 120">
+    <path pathLength="1" d="M8 90 C 30 20, 90 10, 100 50 C 108 84, 60 92, 70 60 C 78 36, 120 30, 150 44" />
+    <path pathLength="1" d="M130 26 L150 44 L128 56" />
+  </symbol>
+  <symbol id="oval" viewBox="0 0 240 90">
+    <path pathLength="1" d="M120 10 C 40 6, 6 30, 10 48 C 14 70, 70 86, 140 82 C 200 78, 234 60, 230 42 C 226 22, 180 8, 110 12" />
+  </symbol>
+  <symbol id="star" viewBox="0 0 100 100">
+    <path pathLength="1" d="M50 6 L58 40 L94 50 L58 60 L50 94 L42 60 L6 50 L42 40 Z" />
+  </symbol>
+  <symbol id="star5" viewBox="0 0 100 100">
+    <path pathLength="1" d="M50 8 L61 38 L94 38 L67 57 L78 90 L50 70 L22 90 L33 57 L6 38 L39 38 Z" />
+  </symbol>
+  <symbol id="sparks" viewBox="0 0 100 100">
+    <path pathLength="1" d="M50 10 L50 34" /><path pathLength="1" d="M18 30 L36 44" /><path pathLength="1" d="M82 30 L64 44" />
+  </symbol>
+  <symbol id="sparkle-cluster" viewBox="0 0 120 100">
+    <path pathLength="1" d="M40 10 L46 34 L70 40 L46 46 L40 70 L34 46 L10 40 L34 34 Z" />
+    <path pathLength="1" d="M90 50 L93 62 L105 65 L93 68 L90 80 L87 68 L75 65 L87 62 Z" />
+    <path pathLength="1" d="M96 12 L98 20 L106 22 L98 24 L96 32 L94 24 L86 22 L94 20 Z" />
+  </symbol>
+  <symbol id="squiggle" viewBox="0 0 200 40">
+    <path pathLength="1" d="M4 24 C 20 4, 36 4, 52 24 S 84 44, 100 24 S 132 4, 148 24 S 180 44, 196 24" />
+  </symbol>
+  <symbol id="underline" viewBox="0 0 200 30">
+    <path pathLength="1" d="M4 14 C 60 6, 130 6, 196 12" />
+    <path pathLength="1" d="M30 24 C 80 18, 140 18, 180 22" />
+  </symbol>
+  <symbol id="crown" viewBox="0 0 100 80">
+    <path pathLength="1" d="M10 66 L14 24 L36 44 L50 12 L64 44 L86 24 L90 66 Z" />
+  </symbol>
+  <symbol id="circle-scribble" viewBox="0 0 100 100">
+    <path pathLength="1" d="M52 12 C 20 10, 8 36, 14 58 C 20 84, 60 94, 82 76 C 100 60, 92 24, 64 18 C 40 12, 20 30, 24 52 C 28 74, 60 82, 76 66" />
+  </symbol>
+  <symbol id="heart" viewBox="0 0 100 100">
+    <path pathLength="1" d="M50 86 C 20 64, 6 46, 10 30 C 14 14, 36 10, 50 28 C 64 10, 86 14, 90 30 C 94 46, 80 64, 50 86 Z" />
+  </symbol>
+  <symbol id="bolt" viewBox="0 0 80 120">
+    <path pathLength="1" d="M48 6 L14 66 L40 66 L30 114 L68 48 L42 48 Z" />
+  </symbol>
+  <symbol id="exclaim" viewBox="0 0 120 100">
+    <path pathLength="1" d="M30 14 L34 62" /><path pathLength="1" d="M35 78 L35 84" />
+    <path pathLength="1" d="M60 8 L62 60" /><path pathLength="1" d="M63 76 L63 82" />
+    <path pathLength="1" d="M90 14 L88 62" /><path pathLength="1" d="M87 78 L87 84" />
+  </symbol>
+  <symbol id="qmark" viewBox="0 0 100 120">
+    <path pathLength="1" d="M28 34 C 26 12, 72 6, 74 32 C 76 52, 52 54, 52 76" />
+    <path pathLength="1" d="M52 96 L52 102" />
+  </symbol>
+  <symbol id="bubble" viewBox="0 0 140 100">
+    <path pathLength="1" d="M20 14 C 60 4, 110 6, 126 20 C 136 40, 128 62, 100 70 C 80 74, 60 74, 44 70 L 22 88 L 28 66 C 10 56, 6 30, 20 14 Z" />
+  </symbol>
+  <symbol id="paw" viewBox="0 0 100 100">
+    <path pathLength="1" d="M50 90 C 30 90, 22 76, 28 64 C 34 52, 44 48, 50 48 C 56 48, 66 52, 72 64 C 78 76, 70 90, 50 90 Z" />
+    <ellipse cx="26" cy="44" rx="8" ry="11" transform="rotate(-18 26 44)" />
+    <ellipse cx="42" cy="26" rx="8" ry="11" transform="rotate(-6 42 26)" />
+    <ellipse cx="58" cy="26" rx="8" ry="11" transform="rotate(6 58 26)" />
+    <ellipse cx="74" cy="44" rx="8" ry="11" transform="rotate(18 74 44)" />
+  </symbol>
+  <symbol id="zigzag" viewBox="0 0 120 60">
+    <path pathLength="1" d="M6 50 L26 12 L46 50 L66 12 L86 50 L106 12" />
+  </symbol>
+</svg>
