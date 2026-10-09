@@ -86,6 +86,7 @@ a { color: inherit; }
 /* ---------- Typography ---------- */
 
 .display {
+  text-wrap: balance;       /* even line breaks: no lonely last word */
   font-family: var(--font-display);
   font-weight: 700;
   font-synthesis: none;
@@ -630,6 +631,7 @@ a { color: inherit; }
 .p-scale .ends { display: flex; justify-content: space-between; gap: 16px; }
 .p-scale .ends .end { font-family: var(--font-display); font-size: 24px; text-transform: uppercase; line-height: 1.05; max-width: 48%; }
 .p-scale .pick-hint { text-align: center; color: var(--muted); }
+.p-scale .ends .end, .h-scales .ends .end { text-wrap: balance; }
 .p-hint { margin: -6px 0 0; font-size: 16px; }
 .wait-text { margin-top: 14px; font-size: 16px; }
 .p-name { font-weight: 800; font-size: 22px; }
@@ -652,7 +654,23 @@ a { color: inherit; }
   .doodle.draw use { animation: none; stroke-dashoffset: 0; }
   .doodle.twinkle, .doodle.float, .sticker.cat.idle { animation: none; }
   .doodle.paw-step { animation: none; opacity: 1; }
+  .h-end .member img { animation: none; }
 }
+
+/* The "no wrong answers" hint fades once the answers are shown */
+.hand.fade-away { opacity: 0; transition: opacity 300ms ease; }
+
+/* Ring around the biggest cluster on the scale */
+.doodle.cluster-ring { stroke: var(--ink); z-index: 0; }
+.doodle.cluster-ring use { stroke-width: 4px; }
+.h-scales .pin { z-index: 1; }
+
+/* Phone: your cat next to GOT IT */
+.got-row { display: flex; align-items: center; gap: 12px; }
+
+/* Final: each cat hops once, one after another, after it lands */
+@keyframes hop { 0%, 100% { transform: translateY(0); } 35% { transform: translateY(-22%); } 60% { transform: translateY(0); } 78% { transform: translateY(-6%); } }
+.h-end .member img { animation: hop 620ms var(--ease-out) both; animation-delay: calc(900ms + var(--i, 0) * 110ms); }
 
 /* For screenshots: ?still shows every animation in its final state */
 .still *, .still *::before, .still *::after { animation-duration: 0s !important; animation-delay: 0s !important; transition: none !important; }

@@ -16,6 +16,9 @@
   <symbol id="oval" viewBox="0 0 240 90">
     <path pathLength="1" d="M120 10 C 40 6, 6 30, 10 48 C 14 70, 70 86, 140 82 C 200 78, 234 60, 230 42 C 226 22, 180 8, 110 12" />
   </symbol>
+  <symbol id="ring" viewBox="5 6 231 149" preserveAspectRatio="none">
+    <path pathLength="1" d="M34 9 C 90 4, 170 6, 212 9 C 231 11, 236 24, 234 48 C 232 88, 236 118, 231 140 C 227 153, 211 154, 160 152 C 110 150, 62 154, 27 151 C 9 149, 6 135, 8 110 C 10 80, 5 44, 9 24 C 12 11, 26 7, 58 12" />
+  </symbol>
   <symbol id="star" viewBox="0 0 100 100">
     <path pathLength="1" d="M50 6 L58 40 L94 50 L58 60 L50 94 L42 60 L6 50 L42 40 Z" />
   </symbol>

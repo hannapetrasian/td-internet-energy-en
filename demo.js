@@ -4,7 +4,7 @@
 // Test a big group: add &players=30
 
 // computeNext comes from app.js as a parameter, so app.js never loads twice.
-import { SCALES, CATS } from './content.js?v=en3';
+import { SCALES, CATS } from './content.js?v=en10';
 
 const NAMES = ['Anna', 'Leo', 'Maya', 'Sam', 'Hanna', 'Omar', 'Lena', 'Diego', 'Yuki', 'Priya',
   'Tom', 'Sara', 'Ivan', 'Zoe', 'Ali', 'Nina', 'Ben', 'Mia', 'Raj', 'Eva',

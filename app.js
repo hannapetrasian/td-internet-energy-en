@@ -2,7 +2,7 @@
 // Static site, no build step. ESM. Firebase loads on demand. Demo mode works offline.
 // Flow: lobby, then five scales, then the final screen.
 
-import { SCALES, CATS, CAT_BY_ID, PHASE_ACCENT, TEXT } from './content.js?v=en3';
+import { SCALES, CATS, CAT_BY_ID, PHASE_ACCENT, TEXT } from './content.js?v=en10';
 
 /* ============================================================
    Utilities
@@ -105,15 +105,28 @@ function tag(text, color = '', key = text, extra = '') {
   return `<span class="tag ${color} ${extra}" data-v="${v}" style="--tilt:${tiltFor('tag:' + key, 4)}deg"><span class="tag-in">${esc(text)}</span></span>`;
 }
 
-function avatar(p, { size, name = true, pop = null, key = p.id } = {}) {
+// First name only: "Priya Ramaswamy" -> "Priya", "Alexandra-Marie" -> "Alexandra"
+const firstName = (name) => String(name || '').trim().split(/[\s-]+/)[0] || name;
+
+function avatar(p, { size, name = true, pop = null, key = p.id, short = false } = {}) {
   return `<div class="avatar ${pop !== null ? 'pop' : ''}" style="${pop !== null ? `--i:${pop};` : ''}" data-pid="${esc(p.id)}">
     ${catSticker(p.cat, { size, key })}
-    ${name ? `<div class="name">${esc(p.name)}</div>` : ''}
+    ${name ? `<div class="name" title="${esc(p.name)}">${esc(short ? firstName(p.name) : p.name)}</div>` : ''}
   </div>`;
 }
 
+// Long names shrink until they fit their slot. Only if they still do not fit, the "..." stays.
+function fitNames(root, min = 17) {
+  for (const n of root.querySelectorAll('.name, .nm')) {
+    if (!n.offsetParent) continue;
+    n.style.fontSize = '';
+    let fs = parseFloat(getComputedStyle(n).fontSize);
+    while (n.scrollWidth > n.clientWidth + 1 && fs > min) { fs -= 1; n.style.fontSize = `${fs}px`; }
+  }
+}
+
 function doodle(id, style = '', cls = '') {
-  return `<svg class="doodle ${cls}" style="${style}" aria-hidden="true"><use href="assets/doodles/sprite.svg#${id}"></use></svg>`;
+  return `<svg class="doodle ${cls}" style="${style}" aria-hidden="true"><use href="assets/doodles/sprite.svg?v=en10#${id}"></use></svg>`;
 }
 
 const hand = (text, rot = -3, style = '') => `<span class="hand" style="--rot:${rot}deg;${style}">${esc(text)}</span>`;
@@ -153,7 +166,7 @@ function confetti(n = 30) {
    ============================================================ */
 
 async function createFirebaseStore() {
-  const { firebaseConfig } = await import('./config.js?v=en3');
+  const { firebaseConfig } = await import('./config.js?v=en10');
   const [{ initializeApp }, db] = await Promise.all([
     import('https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js'),
     import('https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js'),
@@ -208,7 +221,7 @@ const SCALE_SIZES = {
   'n-huge':  { size: 60,  gap: 78,  laneH: 84,  lanes: 5 },
 };
 
-function layoutScale(items, trackW, mode) {
+function layoutScale(items, trackW, mode, maxLanesOverride = 0) {
   const { gap, lanes: maxLanes } = SCALE_SIZES[mode];
   const lo = gap / 2, hi = trackW - gap / 2;
   const sorted = items.slice().sort((a, b) => a.v - b.v);
@@ -230,20 +243,85 @@ function layoutScale(items, trackW, mode) {
     });
   }
 
-  // Bigger group: each cat stays at its value. If the spot is busy, it goes one shelf up.
-  const last = [];
+  // Bigger group: each cat stays at its value and stacks up on shelves.
+  // When every shelf is busy there, it moves sideways to the nearest free spot,
+  // always inside the scale, so cats never sit on top of each other.
+  const lanes = Math.max(1, maxLanesOverride || maxLanes);
+  const placed = Array.from({ length: lanes }, () => []);
+  const free = (lane, x) => placed[lane].every((px) => Math.abs(px - x) >= gap);
+  const step = gap / 2;
   return sorted.map((it) => {
-    let x = Math.min(hi, Math.max(lo, (it.v / 100) * trackW));
-    let lane = last.findIndex((lx) => x - lx >= gap);
-    if (lane === -1 && last.length < maxLanes) lane = last.length;
-    if (lane === -1) {
-      // All shelves are busy here: take the shelf with the most free space and move right a little.
-      lane = last.indexOf(Math.min(...last));
-      x = Math.min(hi, last[lane] + gap);
+    const x0 = Math.min(hi, Math.max(lo, (it.v / 100) * trackW));
+    for (let k = 0; k <= 2 * Math.ceil(trackW / step); k++) {
+      const d = k === 0 ? 0 : (k % 2 ? 1 : -1) * Math.ceil(k / 2) * step;
+      const x = x0 + d;
+      if (x < lo - 0.5 || x > hi + 0.5) continue;
+      for (let lane = 0; lane < lanes; lane++) {
+        if (free(lane, x)) { placed[lane].push(x); return { ...it, x: (x / trackW) * 100, lane }; }
+      }
     }
-    last[lane] = x;
-    return { ...it, x: (x / trackW) * 100, lane };
+    placed[0].push(x0);   // only if the scale is completely full
+    return { ...it, x: (x0 / trackW) * 100, lane: 0 };
   });
+}
+
+// Shelves that fit in the free space above the track, measured on the stage
+function shelvesThatFit(node, track, mode) {
+  const { size, laneH, lanes } = SCALE_SIZES[mode];
+  const title = $('.q .display', node);
+  if (!title) return lanes;
+  const tr = track.getBoundingClientRect();
+  const s = tr.width / (track.offsetWidth || 1);          // stage scale
+  const free = (tr.top - title.getBoundingClientRect().bottom) / s - 24;
+  const pinH = size + 44;          // cat + name
+  return Math.max(1, Math.min(lanes + 1, Math.floor((free - 26 - pinH) / laneH) + 1));
+}
+
+// The biggest cluster: the 20-point window with the most answers. Needs at least 3 people
+// and at least a quarter of the group, otherwise there is no clear "most of us".
+function densestWindow(values, width = 20) {
+  const v = values.slice().sort((a, b) => a - b);
+  let best = { from: 0, to: 0, count: 0 };
+  for (let i = 0, j = 0; i < v.length; i++) {
+    while (v[i] - v[j] > width) j++;
+    if (i - j + 1 > best.count) best = { from: v[j], to: v[i], count: i - j + 1 };
+  }
+  return best;
+}
+
+function drawClusterRing(track, layout, tries = 0) {
+  track.querySelector('.cluster-ring')?.remove();
+  if (layout.length < 4) return;
+  // Wait until every cat has arrived: a hidden tab can delay the move animation.
+  const W = track.offsetWidth || 1;
+  const moving = [...track.querySelectorAll('.pin')].some((pin) =>
+    Math.abs(pin.offsetLeft - (parseFloat(pin.style.getPropertyValue('--x')) / 100) * W) > 3
+    || pin.getAnimations({ subtree: true }).some((a) => a.playState === 'running' && a.effect?.getTiming().iterations !== Infinity));
+  if ((moving || document.hidden) && tries < 40) { setTimeout(() => drawClusterRing(track, layout, tries + 1), 250); return; }
+  const values = layout.map((it) => it.v);
+  const win = densestWindow(values);
+  if (win.count < Math.max(3, Math.ceil(layout.length * 0.25)) || win.count === layout.length) return;
+  // A tie between two groups: no single "most of the team", so no ring.
+  const rest = values.filter((v) => v < win.from - 20 || v > win.to + 20);
+  if (rest.length && densestWindow(rest).count >= win.count) return;
+  const ids = new Set(layout.filter((it) => it.v >= win.from && it.v <= win.to).map((it) => it.p.id));
+  const tr = track.getBoundingClientRect();
+  const s = tr.width / (track.offsetWidth || 1);
+  let l = Infinity, r = -Infinity, t = Infinity, b = -Infinity;
+  for (const pin of track.querySelectorAll('.pin')) {
+    if (!ids.has(pin.dataset.pid)) continue;
+    const img = pin.querySelector('img'), name = pin.querySelector('.name');
+    for (const box of [img?.getBoundingClientRect(), name?.getBoundingClientRect()]) {
+      if (!box) continue;
+      l = Math.min(l, (box.left - tr.left) / s); r = Math.max(r, (box.right - tr.left) / s);
+      t = Math.min(t, (box.top - tr.top) / s); b = Math.max(b, (box.bottom - tr.top) / s);
+    }
+  }
+  if (!isFinite(l)) return;
+  const padX = 30;
+  const top = t - 22, bottom = -6;          // track coordinates: the line is at y = 0
+  const ring = el(doodle('ring', `left:${l - padX}px;top:${top}px;width:${r - l + padX * 2}px;height:${bottom - top}px`, 'draw cluster-ring'));
+  track.appendChild(ring);
 }
 
 /* ============================================================
@@ -474,6 +552,7 @@ class Host {
           first = false;
           if (players.length > 12) requestAnimationFrame(() => applyFit(wrap, [...wrap.querySelectorAll('.avatar')], { max: 120, min: 44, nameH: 46 }));
           else { wrap.style.removeProperty('--fit-size'); wrap.querySelector('.more-chip')?.remove(); wrap.querySelectorAll('.avatar.hidden').forEach((a) => a.classList.remove('hidden')); }
+          requestAnimationFrame(() => requestAnimationFrame(() => fitNames(wrap)));
           $('.status', node).innerHTML = tag(TEXT.lobby.players(players.length), 'surprise', 'lobby-count')
             + (players.length < 2 ? `<span class="hint">${esc(TEXT.lobby.needTwo)}</span>` : '');
         };
@@ -499,6 +578,7 @@ class Host {
           ${hostBottom({ status: tag(`0 / 0 ${TEXT.scales.answered}`, '', 'ans' + step), button: TEXT.scales.show })}
         </div>`);
         let shownAt = null;
+        let ringTimer = null;
         const update = (room) => {
           const players = sortedPlayers(room.players);
           const answers = room.scales?.[step] || {};
@@ -510,12 +590,14 @@ class Host {
           const mode = crowdClass(answered.length);
           track.className = `track ${mode}`;
           const trackW = track.clientWidth || 1680;
-          const layout = layoutScale(answered.map((p) => ({ p, v: Number(answers[p.id]) })), trackW, mode);
+          $('.q .hand', node)?.classList.add('fade-away');   // the hint is not needed once answers are shown
+          const lanesFit = shelvesThatFit(node, track, mode);
+          const layout = layoutScale(answered.map((p) => ({ p, v: Number(answers[p.id]) })), trackW, mode, lanesFit);
           const late = performance.now() - shownAt > 1500;
           layout.forEach((it, i) => {
             let pin = track.querySelector(`.pin[data-pid="${it.p.id}"]`);
             if (!pin) {
-              pin = el(`<div class="pin" data-pid="${esc(it.p.id)}" style="--x:50%;--i:${late ? 0 : Math.min(i, 12)};--lane:${it.lane}">${avatar(it.p, { pop: late ? 0 : Math.min(i, 12) })}</div>`);
+              pin = el(`<div class="pin" data-pid="${esc(it.p.id)}" style="--x:50%;--i:${late ? 0 : Math.min(i, 12)};--lane:${it.lane}">${avatar(it.p, { pop: late ? 0 : Math.min(i, 12), short: mode !== 'n-few' })}</div>`);
               track.appendChild(pin);
               requestAnimationFrame(() => requestAnimationFrame(() => { pin.style.setProperty('--x', `${it.x}%`); }));
             } else {
@@ -523,6 +605,11 @@ class Host {
               pin.style.setProperty('--lane', it.lane);
             }
           });
+          // After the cats settle, circle the place where most of the team stands.
+          requestAnimationFrame(() => fitNames(track));
+          clearTimeout(ringTimer);
+          const settle = late || reduced() ? 150 : 700 + Math.min(layout.length, 13) * 120 + 250;
+          ringTimer = setTimeout(() => drawClusterRing(track, layout), settle);
         };
         return { node, update };
       },
@@ -559,6 +646,7 @@ class Host {
           const team = $('.team', node);
           requestAnimationFrame(() => applyFit(team, [...team.querySelectorAll('.member')], { max: 140, min: 44, nameH: 48, gapY: 18 }));
         }
+        requestAnimationFrame(() => requestAnimationFrame(() => fitNames($('.team', node))));
         setTimeout(() => confetti(), 300);
         return { node, update: () => {} };
       },
@@ -726,8 +814,7 @@ class Player {
         range.addEventListener('input', () => { $('.pick-hint', node)?.classList.add('hidden'); }, { once: true });
         const lock = (v) => {
           range.value = v; range.disabled = true; btn.classList.add('hidden'); $('.pick-hint', node)?.classList.add('hidden');
-          state.innerHTML = `${tag(TEXT.scales.gotIt, 'surprise', 'got' + step)}<div class="body muted wait-text">${esc(TEXT.scales.wait)}</div>`;
-          $('.tag', state).classList.add('pop');
+          state.innerHTML = `<div class="got-row">${catSticker(me.cat, { size: 84, key: me.id, pop: 0 })}${tag(TEXT.scales.gotIt, 'surprise', 'got' + step, 'pop')}</div><div class="body muted wait-text">${esc(TEXT.scales.wait)}</div>`;
         };
         this.store.get(this.code, `scales/${step}/${me.id}`).then((v) => { if (v !== null && v !== undefined) lock(v); });
         btn.onclick = async () => {
@@ -753,10 +840,6 @@ class Player {
           </div>`,
           bottom: '',
         });
-        if (mode === 'n-crowd') {
-          const team = $('.team', node);
-          requestAnimationFrame(() => applyFit(team, [...team.querySelectorAll('.member')], { max: 140, min: 44, nameH: 48, gapY: 18 }));
-        }
         setTimeout(() => confetti(), 300);
         return { node, update: () => {} };
       },
@@ -815,7 +898,7 @@ async function main() {
 
   let store;
   try {
-    store = demo ? await (await import('./demo.js?v=en3')).createDemoStore(params, computeNext) : await createFirebaseStore();
+    store = demo ? await (await import('./demo.js?v=en10')).createDemoStore(params, computeNext) : await createFirebaseStore();
   } catch (e) {
     console.error(e);
     show('index');
